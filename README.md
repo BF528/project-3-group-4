@@ -1,11 +1,19 @@
 # Project Description
 
-A brief description of what this repository is for and what it contains
+Code for BF528 Project 3: Concordance of microarray and RNA-Seq differential gene expression
 
 # Contributors
 
-List contributor names and github user names, or email addresses if desired
+Names: Konrad Thorner, Aishwarya Deengar, Jia Liu, Morgan Rozman
+
+Github: kthorner, AishwaryaD1, jialiu0103, morganroz
+
+Email: kthorner@bu.edu, adeengar@bu.edu , jiliu@bu.edu, mrozman@bu.edu
 
 # Repository Contents
 
-Provide a brief description of each script/code file in this repo, what it does, and how to execute it
+## run_limma.R
+Limma analysis for microarray data for each chemical group. This code utilizes a sample information data set and an RNA normalized matrix of all experiments. Outputs csv files of expression for each chemical group.
+
+## create_fc_plots.R
+Creates a histogram of significant probesets for each chemical group and volcano plots for each chemical group.
