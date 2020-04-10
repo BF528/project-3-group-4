@@ -18,5 +18,8 @@ Limma analysis for microarray data for each chemical group. This code utilizes a
 ## create_fc_plots.R
 Creates a histogram of significant probesets for each chemical group and volcano plots for each chemical group.
 
+## concordence.R
+Computes concordance between microarray and RNA-Seq data. Also creates scatter plots and histograms for concordance analyses.
+
 ## heatmap.R
 Creates a heatmap of normalized counts for all samples
