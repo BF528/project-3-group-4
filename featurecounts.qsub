@@ -1,0 +1,20 @@
+
+#!/bin/bash
+
+#$ -P bf528
+#$ -cwd
+#$ -pe omp 16
+
+source /etc/bashrc
+module load python2
+module load subread
+
+GTF=/project/bf528/project_3/reference/rn4_refGene_20180308.gtf  # path to gtf annotation
+OUT=/projectnb/bf528/users/group4/project3/samples/Star_output/featurecounts
+echo $GTF $OUT
+
+for file in *.bam
+do
+    featureCounts -T 16 -a $GTF -o $OUT/$file.txt $file 
+done
+
