@@ -1,0 +1,210 @@
+---
+title: 'Project 3: Programmer'
+author: "adeengar"
+date: "4/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load packages}
+#Load DESeq2 
+library(DESeq2, lib.loc = "/share/pkg.7/r/3.6.0/install/lib64/R/library")
+```
+
+```{r read files}
+library(data.table)
+#Load text file containing counts
+dataa <- fread("/projectnb/bf528/users/group4/project3/samples/Star_output/a")
+datab <- fread("/projectnb/bf528/users/group4/project3/samples/Star_output/b")
+datac <- fread("/projectnb/bf528/users/group4/project3/samples/Star_output/c")
+datad <- fread("/projectnb/bf528/users/group4/project3/samples/Star_output/d")
+datae <- fread("/projectnb/bf528/users/group4/project3/samples/Star_output/e")
+dataf <- fread("/projectnb/bf528/users/group4/project3/samples/Star_output/f")
+datag <- fread("/projectnb/bf528/users/group4/project3/samples/Star_output/g")
+datah <- fread("/projectnb/bf528/users/group4/project3/samples/Star_output/h")
+
+
+#Merge counts
+m1 <- merge(dataa, datab, by="Geneid")
+m2 <- merge(datac, datad, by="Geneid")
+m3 <- merge(datae, dataf, by="Geneid")
+m4 <- merge(datag, datah, by="Geneid")
+m5 <- merge(m1, m2, by="Geneid")
+m6 <- merge(m3, m4, by="Geneid")
+
+mergedata <- merge(m5, m6, by="Geneid")
+colnames(mergedata) <- substring(colnames(mergedata),first = 1, last = 10)
+mergedata
+
+#Write as csv file
+write.csv(mergedata, file = "mergedata.csv", row.names = FALSE)
+
+#Load counts of control sample
+data <- fread("/project/bf528/project_3/samples/control_counts.csv") #Control
+x <- as.data.frame(mergedata)
+data <- as.data.frame(data)
+
+#Merge control and expt counts
+x <- merge.data.frame(x, data, by = "Geneid")
+```
+
+```{r split into 3 counts files}
+
+#AhR-LEFLUNOMIDE
+count1 <- x[c( "SRR1178009", "SRR1178010", "SRR1178050", "SRR1178061", "SRR1178063")]
+#CAR/PXR-FLUCONAZOLE
+count2 <- x[c("SRR1178014", "SRR1178021", "SRR1178047", "SRR1178050", "SRR1178061", "SRR1178063")]
+#DNA_Damage-IFOSFAMIDE
+count3 <- x[c("SRR1177981", "SRR1177982", "SRR1177983", "SRR1178050", "SRR1178061", "SRR1178063")]
+
+
+```
+
+ 
+```{r DESeq2 analysis}
+#Control vs Info1
+# load counts
+counts <- count1
+# filter out rows that have any zeros
+counts <- subset(counts,rowSums(counts==0)==0)
+# sample information
+infoa <- read.csv('/project/bf528/project_3/toxgroups/toxgroup_3_rna_info.csv')
+info1 <- infoa[c(2:3, 10:12),]
+info1
+
+# create the DESeq object
+dds <- DESeqDataSetFromMatrix(
+  countData = counts,
+  colData = info1,
+  design= ~ mode_of_action
+)
+
+# relevel mode_of_action as factor
+dds$mode_of_action <- relevel(dds$mode_of_action, ref='Control')
+
+# run DESeq
+
+dds <- DESeq(dds)
+res <- results(dds, contrast=c('mode_of_action', 'AhR', 'Control'))
+res <- lfcShrink(dds, coef=2)
+
+# write out DE results
+write.csv(res,'deseq_results1.csv')
+
+# write out matrix of normalized counts
+write.csv(counts(dds,normalized=TRUE),'deseq_norm_counts1.csv')
+
+#Control vs Info2
+
+# load counts
+count2 <- count2
+# filter out rows that have any zeros
+count2 <- subset(count2,rowSums(count2==0)==0)
+
+# sample information
+infob <- read.csv('/project/bf528/project_3/toxgroups/toxgroup_3_rna_info.csv')
+info2 <- infob[c(4:6, 10:12),]
+
+# create the DESeq object
+dds <- DESeqDataSetFromMatrix(
+  countData = count2,
+  colData = info2,
+  design= ~ mode_of_action
+)
+
+# relevel mode_of_action as factor
+dds$mode_of_action <- relevel(dds$mode_of_action, ref='Control')
+
+# run DESeq
+
+dds <- DESeq(dds)
+res <- results(dds, contrast=c('mode_of_action', 'CAR/PXR', 'Control'))
+res <- lfcShrink(dds, coef=2)
+
+# write out DE results
+write.csv(res,'deseq_results2.csv')
+
+# write out matrix of normalized counts
+write.csv(counts(dds,normalized=TRUE),'deseq_norm_counts2.csv')
+
+
+#Control vs Info3
+
+# load counts
+count3 <- count3
+# filter out rows that have any zeros
+count3 <- subset(count3,rowSums(count3==0)==0)
+
+# sample information
+infoc <- read.csv('/project/bf528/project_3/toxgroups/toxgroup_3_rna_info.csv')
+info3<- infoc[c(4:6, 10:12),]
+
+# create the DESeq object
+dds <- DESeqDataSetFromMatrix(
+  countData = count3,
+  colData = info3,
+  design= ~ mode_of_action
+)
+
+# relevel mode_of_action as factor
+dds$mode_of_action <- relevel(dds$mode_of_action, ref='Control')
+
+# run DESeq
+
+dds <- DESeq(dds)
+res <- results(dds, contrast=c('mode_of_action', 'CAR/PXR', 'Control'))
+res <- lfcShrink(dds, coef=2)
+
+# write out DE results
+write.csv(res,'deseq_results3.csv')
+
+# write out matrix of normalized counts
+write.csv(counts(dds,normalized=TRUE),'deseq_norm_counts3.csv')
+```
+
+```{r analysis}
+#reading DESeq2 result files
+deseq1<- fread("deseq_results1.csv")
+deseq2<- fread("deseq_results2.csv")
+deseq3<- fread("deseq_results3.csv")
+
+#Sorting data by p value and reporting the top 10 genes
+sortdata1 <- deseq1[order(deseq1$pvalue),]
+top1<- head(sortdata1, n=10)
+top1
+
+sortdata2 <- deseq2[order(deseq2$pvalue),]
+top2<- head(sortdata2, n=10)
+top2
+
+sortdata3 <- deseq3[order(deseq3$pvalue),]
+top3<- head(sortdata3, n=10)
+top3
+
+#list if genes having p<0.05
+#deseq1
+nrow(sortdata1[sortdata1$padj < 0.05,])
+#deseq2
+nrow(sortdata2[sortdata2$padj < 0.05,])
+#deseq3
+nrow(sortdata3[sortdata3$padj < 0.05,])
+
+#Histogram of deseq1, deseq2, deseq3 results
+histfoldch <- sortdata1$log2FoldChange
+hist(histfoldch, breaks=4, main = "Histogram of log2.foldchange", col= "lightblue", xlab= "log2.fold change")
+
+histfoldch <- sortdata2$log2FoldChange
+hist(histfoldch, breaks=4, main = "Histogram of log2.foldchange", col= "lightblue", xlab= "log2.fold change")
+
+histfoldch <- sortdata3$log2FoldChange
+hist(histfoldch, breaks=4, main = "Histogram of log2.foldchange", col= "lightblue", xlab= "log2.fold change")
+
+#scatter plot of deseq1, deseq2, deseq3 results
+a<- plot(x= sortdata1$log2FoldChange, y= sortdata1$pvalue, main = "Scatterplot Matrix" , xlab = "Log2FoldChange", ylab= "p value") 
+b<- plot(x= sortdata2$log2FoldChange, y= sortdata2$pvalue, main = "Scatterplot Matrix" , xlab = "Log2FoldChange", ylab= "p value") 
+c<- plot(x= sortdata3$log2FoldChange, y= sortdata3$pvalue, main = "Scatterplot Matrix" , xlab = "Log2FoldChange", ylab= "p value") 
+
+```
